@@ -1,0 +1,48 @@
+# Dependencias
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Variables de entorno
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Carpetas de build / distribución
+dist/
+build/
+coverage/
+.nyc_output/
+
+# Archivos subidos por usuarios (logos, firmas, PDFs generados)
+uploads/
+!uploads/.gitkeep
+
+# Logs
+logs/
+*.log
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Tests
+coverage/
+.jest-cache/
+
+# Claude agent worktrees y settings locales
+.claude/worktrees/
+.claude/settings.local.json
+.claude
+
+# Enunciado (no se sube al repo final)
+/Enunciado
+
+.gitignore
