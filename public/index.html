@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BildyApp — Test UI</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background: #f0f2f5; }
+    .navbar { background: #1e3a5f !important; }
+    .nav-tabs .nav-link.active { font-weight: 600; color: #1e3a5f; }
+    .card { border: none; box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+    .badge-signed { background: #198754; }
+    .badge-pending { background: #6c757d; }
+    pre.response { background:#1e1e1e; color:#d4d4d4; border-radius:6px;
+                   padding:12px; font-size:.78rem; max-height:200px; overflow:auto; }
+    .section-title { font-size:.7rem; text-transform:uppercase;
+                     letter-spacing:.08em; color:#6c757d; margin-bottom:.5rem; }
+    #toast-container { position:fixed; bottom:1.5rem; right:1.5rem; z-index:9999; }
+    .spinner-sm { width:1rem; height:1rem; }
+  </style>
+</head>
+<body>
+
+<!-- ── NAVBAR ── -->
+<nav class="navbar navbar-dark px-3 py-2">
+  <span class="navbar-brand fw-bold fs-5">🏗 BildyApp</span>
+  <div id="nav-user" class="d-none d-flex align-items-center gap-3">
+    <span class="text-white-50 small" id="nav-email"></span>
+    <span class="badge bg-secondary" id="nav-company">Sin empresa</span>
+    <button class="btn btn-sm btn-outline-light" onclick="logout()">Salir</button>
+  </div>
+</nav>
+
+<!-- ── AUTH ── -->
+<div id="screen-auth" class="container" style="max-width:420px; margin-top:6rem;">
+  <div class="card p-4">
+    <h5 class="text-center mb-4 fw-bold" style="color:#1e3a5f">BildyApp</h5>
+    <div class="btn-group w-100 mb-4" role="group">
+      <button type="button" id="tab-btn-login"
+        class="btn btn-primary"
+        onclick="showAuthTab('login')">Iniciar sesión</button>
+      <button type="button" id="tab-btn-register"
+        class="btn btn-outline-primary"
+        onclick="showAuthTab('register')">Crear cuenta</button>
+    </div>
+    <form id="form-auth" onsubmit="submitAuth(event)">
+      <div class="mb-3">
+        <label class="form-label small fw-semibold">Email</label>
+        <input type="email" id="auth-email" class="form-control" required placeholder="usuario@ejemplo.com">
+      </div>
+      <div class="mb-3">
+        <label class="form-label small fw-semibold">Contraseña</label>
+        <input type="password" id="auth-pass" class="form-control" required placeholder="Mín. 8 caracteres">
+      </div>
+      <button type="submit" class="btn btn-primary w-100 fw-semibold" id="btn-auth">Iniciar sesión</button>
+    </form>
+    <pre class="response mt-3 d-none" id="auth-response"></pre>
+  </div>
+</div>
+
+<!-- ── MAIN APP ── -->
+<div id="screen-app" class="d-none">
+
+  <!-- Setup empresa (first run) -->
+  <div id="screen-setup" class="container d-none" style="max-width:480px; margin-top:4rem;">
+    <div class="card p-4">
+      <h5 class="fw-bold mb-1">Configura tu empresa</h5>
+      <p class="text-muted small mb-3">Necesitas una empresa para crear clientes y proyectos.</p>
+      <form onsubmit="submitCompany(event)">
+        <div class="mb-3">
+          <label class="form-label small">Nombre empresa</label>
+          <input type="text" id="co-name" class="form-control" placeholder="Obras García SL">
+        </div>
+        <div class="mb-3">
+          <label class="form-label small">CIF</label>
+          <input type="text" id="co-cif" class="form-control" placeholder="B12345678">
+        </div>
+        <div class="mb-3">
+          <label class="form-label small">Ciudad</label>
+          <input type="text" id="co-city" class="form-control" placeholder="Madrid">
+        </div>
+        <div class="form-check mb-3">
+          <input class="form-check-input" type="checkbox" id="co-freelance">
+          <label class="form-check-label small">Soy autónomo</label>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Guardar empresa</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div id="screen-tabs" class="container-fluid px-4 pt-3 d-none">
+    <ul class="nav nav-tabs mb-3">
+      <li class="nav-item"><a class="nav-link active" href="#" onclick="switchTab('clients',this)">Clientes</a></li>
+      <li class="nav-item"><a class="nav-link" href="#" onclick="switchTab('projects',this)">Proyectos</a></li>
+      <li class="nav-item"><a class="nav-link" href="#" onclick="switchTab('notes',this)">Albaranes</a></li>
+    </ul>
+
+    <!-- ── CLIENTES ── -->
+    <div id="tab-clients">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="card p-3">
+            <p class="section-title">Nuevo cliente</p>
+            <form onsubmit="createClient(event)">
+              <div class="mb-2"><input type="text" id="cl-name" class="form-control form-control-sm" placeholder="Nombre *" required></div>
+              <div class="mb-2"><input type="text" id="cl-cif" class="form-control form-control-sm" placeholder="CIF *" required></div>
+              <div class="mb-2"><input type="email" id="cl-email" class="form-control form-control-sm" placeholder="Email *" required></div>
+              <div class="mb-2"><input type="tel" id="cl-phone" class="form-control form-control-sm" placeholder="Teléfono"></div>
+              <button type="submit" class="btn btn-primary btn-sm w-100">Crear cliente</button>
+            </form>
+          </div>
+        </div>
+        <div class="col-md-8">
+          <div class="card p-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <p class="section-title mb-0">Clientes</p>
+              <button class="btn btn-outline-secondary btn-sm" onclick="loadClients()">↻ Recargar</button>
+            </div>
+            <div id="clients-list"><p class="text-muted small">Cargando...</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PROYECTOS ── -->
+    <div id="tab-projects" class="d-none">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="card p-3">
+            <p class="section-title">Nuevo proyecto</p>
+            <form onsubmit="createProject(event)">
+              <div class="mb-2">
+                <select id="pr-client" class="form-select form-select-sm" required>
+                  <option value="">Selecciona cliente *</option>
+                </select>
+              </div>
+              <div class="mb-2"><input type="text" id="pr-name" class="form-control form-control-sm" placeholder="Nombre *" required></div>
+              <div class="mb-2"><input type="text" id="pr-code" class="form-control form-control-sm" placeholder="Código *" required></div>
+              <button type="submit" class="btn btn-primary btn-sm w-100">Crear proyecto</button>
+            </form>
+          </div>
+        </div>
+        <div class="col-md-8">
+          <div class="card p-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <p class="section-title mb-0">Proyectos</p>
+              <button class="btn btn-outline-secondary btn-sm" onclick="loadProjects()">↻ Recargar</button>
+            </div>
+            <div id="projects-list"><p class="text-muted small">Cargando...</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ALBARANES ── -->
+    <div id="tab-notes" class="d-none">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="card p-3">
+            <p class="section-title">Nuevo albarán</p>
+            <form onsubmit="createNote(event)">
+              <div class="mb-2">
+                <select id="nt-project" class="form-select form-select-sm" required>
+                  <option value="">Selecciona proyecto *</option>
+                </select>
+              </div>
+              <div class="mb-2">
+                <select id="nt-client" class="form-select form-select-sm" required>
+                  <option value="">Selecciona cliente *</option>
+                </select>
+              </div>
+              <div class="mb-2">
+                <select id="nt-format" class="form-select form-select-sm" onchange="toggleNoteFormat(this.value)">
+                  <option value="hours">Horas</option>
+                  <option value="material">Material</option>
+                </select>
+              </div>
+              <div class="mb-2"><input type="text" id="nt-desc" class="form-control form-control-sm" placeholder="Descripción *" required></div>
+              <div id="nt-hours-fields">
+                <div class="mb-2"><input type="number" id="nt-hours" class="form-control form-control-sm" placeholder="Horas" min="0" step="0.5"></div>
+              </div>
+              <div id="nt-material-fields" class="d-none">
+                <div class="mb-2"><input type="text" id="nt-material" class="form-control form-control-sm" placeholder="Material"></div>
+                <div class="mb-2"><input type="number" id="nt-qty" class="form-control form-control-sm" placeholder="Cantidad" min="0"></div>
+                <div class="mb-2"><input type="text" id="nt-unit" class="form-control form-control-sm" placeholder="Unidad (kg, m², ...)"></div>
+              </div>
+              <div class="mb-2"><input type="date" id="nt-date" class="form-control form-control-sm"></div>
+              <button type="submit" class="btn btn-primary btn-sm w-100">Crear albarán</button>
+            </form>
+          </div>
+        </div>
+        <div class="col-md-8">
+          <div class="card p-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <p class="section-title mb-0">Albaranes</p>
+              <button class="btn btn-outline-secondary btn-sm" onclick="loadNotes()">↻ Recargar</button>
+            </div>
+            <div id="notes-list"><p class="text-muted small">Cargando...</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /screen-tabs -->
+</div><!-- /screen-app -->
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<!-- Modal firma -->
+<div class="modal fade" id="modal-sign" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header"><h6 class="modal-title">Firmar albarán</h6></div>
+      <div class="modal-body">
+        <input type="file" id="sign-file" class="form-control form-control-sm" accept="image/png,image/jpeg,image/webp">
+        <p class="text-muted small mt-2">PNG, JPEG o WebP — máx. 5 MB</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-success btn-sm" onclick="submitSign()">Firmar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ── Estado ────────────────────────────────────────────────────────────────────
+const state = {
+  token: localStorage.getItem('bildy_token'),
+  user:  null,
+  clients:  [],
+  projects: [],
+  signNoteId: null,
+};
+let authMode = 'login';
+
+// ── API helper ────────────────────────────────────────────────────────────────
+async function api(method, path, body = null, isFormData = false) {
+  const opts = {
+    method,
+    headers: { ...(state.token ? { Authorization: `Bearer ${state.token}` } : {}) },
+  };
+  if (body && !isFormData) {
+    opts.headers['Content-Type'] = 'application/json';
+    opts.body = JSON.stringify(body);
+  } else if (body && isFormData) {
+    opts.body = body; // FormData — no Content-Type header
+  }
+  const res = await fetch(path, opts);
+  const ct  = res.headers.get('content-type') || '';
+  const data = ct.includes('application/json') ? await res.json() : { status: res.status };
+  if (!res.ok) throw { status: res.status, data };
+  return data;
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+function toast(msg, type = 'success') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `alert alert-${type === 'success' ? 'success' : 'danger'} py-2 px-3 small shadow`;
+  t.style.minWidth = '220px';
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+function showAuthTab(mode) {
+  authMode = mode;
+  const isLogin = mode === 'login';
+  // Alternar botones del selector
+  document.getElementById('tab-btn-login').className    = isLogin ? 'btn btn-primary' : 'btn btn-outline-primary';
+  document.getElementById('tab-btn-register').className = isLogin ? 'btn btn-outline-primary' : 'btn btn-primary';
+  // Actualizar texto del botón submit
+  document.getElementById('btn-auth').textContent = isLogin ? 'Iniciar sesión' : 'Crear cuenta';
+  document.getElementById('auth-response').classList.add('d-none');
+}
+
+async function submitAuth(e) {
+  e.preventDefault();
+  const email = document.getElementById('auth-email').value;
+  const password = document.getElementById('auth-pass').value;
+  const btn = document.getElementById('btn-auth');
+  const pre = document.getElementById('auth-response');
+  btn.disabled = true;
+  btn.textContent = '...';
+  try {
+    const data = await api('POST', `/api/user/${authMode}`, { email, password });
+    state.token = data.accessToken;
+    localStorage.setItem('bildy_token', data.accessToken);
+    pre.classList.add('d-none');
+    await initApp();
+  } catch (err) {
+    pre.textContent = JSON.stringify(err.data, null, 2);
+    pre.classList.remove('d-none');
+    toast(err.data?.message || 'Error de autenticación', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = authMode === 'login' ? 'Entrar' : 'Registrarse';
+  }
+}
+
+function logout() {
+  api('POST', '/api/user/logout').catch(() => {});
+  state.token = null;
+  localStorage.removeItem('bildy_token');
+  document.getElementById('screen-app').classList.add('d-none');
+  document.getElementById('screen-auth').classList.remove('d-none');
+  document.getElementById('nav-user').classList.add('d-none');
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+async function initApp() {
+  try {
+    const me = await api('GET', '/api/user');
+    state.user = me.user;
+    document.getElementById('nav-email').textContent = me.user.email;
+    document.getElementById('nav-user').classList.remove('d-none');
+    document.getElementById('screen-auth').classList.add('d-none');
+    document.getElementById('screen-app').classList.remove('d-none');
+
+    if (!me.user.company) {
+      document.getElementById('screen-setup').classList.remove('d-none');
+      document.getElementById('screen-tabs').classList.add('d-none');
+    } else {
+      document.getElementById('screen-setup').classList.add('d-none');
+      document.getElementById('screen-tabs').classList.remove('d-none');
+      document.getElementById('nav-company').textContent = me.user.company?.name || 'Empresa';
+      loadClients();
+    }
+  } catch {
+    logout();
+  }
+}
+
+// ── Empresa ───────────────────────────────────────────────────────────────────
+async function submitCompany(e) {
+  e.preventDefault();
+  const isFreelance = document.getElementById('co-freelance').checked;
+  const body = isFreelance ? { isFreelance: true } : {
+    isFreelance: false,
+    name: document.getElementById('co-name').value,
+    cif:  document.getElementById('co-cif').value,
+    address: { city: document.getElementById('co-city').value },
+  };
+  try {
+    await api('PATCH', '/api/user/company', body);
+    toast('Empresa guardada');
+    await initApp();
+  } catch (err) {
+    toast(err.data?.message || 'Error al guardar empresa', 'error');
+  }
+}
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+function switchTab(tab, el) {
+  ['clients','projects','notes'].forEach(t => {
+    document.getElementById(`tab-${t}`).classList.add('d-none');
+  });
+  document.querySelectorAll('.nav-tabs .nav-link').forEach(a => a.classList.remove('active'));
+  document.getElementById(`tab-${tab}`).classList.remove('d-none');
+  el.classList.add('active');
+  if (tab === 'projects') { loadProjects(); populateClientSelect(); }
+  if (tab === 'notes')    { loadNotes(); populateNoteSelects(); }
+}
+
+// ── Clientes ──────────────────────────────────────────────────────────────────
+async function loadClients() {
+  const el = document.getElementById('clients-list');
+  try {
+    const data = await api('GET', '/api/client?limit=50');
+    state.clients = data.data || [];
+    if (!state.clients.length) {
+      el.innerHTML = '<p class="text-muted small">Sin clientes todavía.</p>';
+      return;
+    }
+    el.innerHTML = `
+      <table class="table table-sm table-hover mb-0">
+        <thead><tr><th>Nombre</th><th>CIF</th><th>Email</th><th></th></tr></thead>
+        <tbody>
+          ${state.clients.map(c => `
+            <tr>
+              <td class="small">${c.name}</td>
+              <td class="small text-muted">${c.cif}</td>
+              <td class="small text-muted">${c.email}</td>
+              <td>
+                <button class="btn btn-outline-danger btn-sm py-0 px-1"
+                  onclick="deleteClient('${c._id}')">✕</button>
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`;
+  } catch (err) {
+    el.innerHTML = `<p class="text-danger small">${err.data?.message || 'Error'}</p>`;
+  }
+}
+
+async function createClient(e) {
+  e.preventDefault();
+  try {
+    await api('POST', '/api/client', {
+      name:  document.getElementById('cl-name').value,
+      cif:   document.getElementById('cl-cif').value,
+      email: document.getElementById('cl-email').value,
+      phone: document.getElementById('cl-phone').value || undefined,
+    });
+    toast('Cliente creado');
+    e.target.reset();
+    loadClients();
+  } catch (err) {
+    toast(err.data?.message || 'Error al crear cliente', 'error');
+  }
+}
+
+async function deleteClient(id) {
+  if (!confirm('¿Eliminar cliente?')) return;
+  try {
+    await api('DELETE', `/api/client/${id}`);
+    toast('Cliente eliminado');
+    loadClients();
+  } catch (err) {
+    toast(err.data?.message || 'Error al eliminar', 'error');
+  }
+}
+
+// ── Proyectos ─────────────────────────────────────────────────────────────────
+async function loadProjects() {
+  const el = document.getElementById('projects-list');
+  try {
+    const data = await api('GET', '/api/project?limit=50');
+    state.projects = data.data || [];
+    if (!state.projects.length) {
+      el.innerHTML = '<p class="text-muted small">Sin proyectos todavía.</p>';
+      return;
+    }
+    el.innerHTML = `
+      <table class="table table-sm table-hover mb-0">
+        <thead><tr><th>Nombre</th><th>Código</th><th>Cliente</th><th></th></tr></thead>
+        <tbody>
+          ${state.projects.map(p => `
+            <tr>
+              <td class="small">${p.name}</td>
+              <td class="small text-muted">${p.projectCode}</td>
+              <td class="small text-muted">${p.client?.name || '—'}</td>
+              <td>
+                <button class="btn btn-outline-danger btn-sm py-0 px-1"
+                  onclick="deleteProject('${p._id}')">✕</button>
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`;
+  } catch (err) {
+    el.innerHTML = `<p class="text-danger small">${err.data?.message || 'Error'}</p>`;
+  }
+}
+
+async function populateClientSelect() {
+  if (!state.clients.length) {
+    const d = await api('GET', '/api/client?limit=50');
+    state.clients = d.data || [];
+  }
+  const sel = document.getElementById('pr-client');
+  sel.innerHTML = '<option value="">Selecciona cliente *</option>' +
+    state.clients.map(c => `<option value="${c._id}">${c.name}</option>`).join('');
+}
+
+async function createProject(e) {
+  e.preventDefault();
+  try {
+    await api('POST', '/api/project', {
+      client:      document.getElementById('pr-client').value,
+      name:        document.getElementById('pr-name').value,
+      projectCode: document.getElementById('pr-code').value,
+    });
+    toast('Proyecto creado');
+    e.target.reset();
+    loadProjects();
+  } catch (err) {
+    toast(err.data?.message || 'Error al crear proyecto', 'error');
+  }
+}
+
+async function deleteProject(id) {
+  if (!confirm('¿Eliminar proyecto?')) return;
+  try {
+    await api('DELETE', `/api/project/${id}`);
+    toast('Proyecto eliminado');
+    loadProjects();
+  } catch (err) {
+    toast(err.data?.message || 'Error al eliminar', 'error');
+  }
+}
+
+// ── Albaranes ─────────────────────────────────────────────────────────────────
+function toggleNoteFormat(val) {
+  document.getElementById('nt-hours-fields').classList.toggle('d-none', val !== 'hours');
+  document.getElementById('nt-material-fields').classList.toggle('d-none', val !== 'material');
+}
+
+async function populateNoteSelects() {
+  if (!state.clients.length) {
+    const d = await api('GET', '/api/client?limit=50');
+    state.clients = d.data || [];
+  }
+  if (!state.projects.length) {
+    const d = await api('GET', '/api/project?limit=50');
+    state.projects = d.data || [];
+  }
+  const sc = document.getElementById('nt-client');
+  sc.innerHTML = '<option value="">Selecciona cliente *</option>' +
+    state.clients.map(c => `<option value="${c._id}">${c.name}</option>`).join('');
+  const sp = document.getElementById('nt-project');
+  sp.innerHTML = '<option value="">Selecciona proyecto *</option>' +
+    state.projects.map(p => `<option value="${p._id}">${p.name}</option>`).join('');
+  // Preselect today
+  document.getElementById('nt-date').value = new Date().toISOString().slice(0, 10);
+}
+
+async function loadNotes() {
+  const el = document.getElementById('notes-list');
+  try {
+    const data = await api('GET', '/api/deliverynote?limit=50');
+    const notes = data.data || [];
+    if (!notes.length) {
+      el.innerHTML = '<p class="text-muted small">Sin albaranes todavía.</p>';
+      return;
+    }
+    el.innerHTML = `
+      <table class="table table-sm table-hover mb-0">
+        <thead><tr><th>Descripción</th><th>Tipo</th><th>Estado</th><th class="text-end">Acciones</th></tr></thead>
+        <tbody>
+          ${notes.map(n => `
+            <tr>
+              <td class="small">${n.description}</td>
+              <td class="small text-muted">${n.format}</td>
+              <td>
+                <span class="badge ${n.signed ? 'badge-signed' : 'badge-pending'}">
+                  ${n.signed ? 'Firmado' : 'Pendiente'}
+                </span>
+              </td>
+              <td class="text-end">
+                <a href="/api/deliverynote/pdf/${n._id}" target="_blank"
+                   class="btn btn-outline-secondary btn-sm py-0 px-1" title="Ver PDF">PDF</a>
+                ${!n.signed ? `<button class="btn btn-outline-success btn-sm py-0 px-1 ms-1"
+                  onclick="openSign('${n._id}')" title="Firmar">✍</button>` : ''}
+                <button class="btn btn-outline-danger btn-sm py-0 px-1 ms-1"
+                  onclick="deleteNote('${n._id}')" title="Eliminar"
+                  ${n.signed ? 'disabled' : ''}>✕</button>
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`;
+  } catch (err) {
+    el.innerHTML = `<p class="text-danger small">${err.data?.message || 'Error'}</p>`;
+  }
+}
+
+async function createNote(e) {
+  e.preventDefault();
+  const format = document.getElementById('nt-format').value;
+  const body = {
+    project:     document.getElementById('nt-project').value,
+    client:      document.getElementById('nt-client').value,
+    format,
+    description: document.getElementById('nt-desc').value,
+    workDate:    document.getElementById('nt-date').value || new Date().toISOString(),
+    ...(format === 'hours'
+      ? { hours: Number(document.getElementById('nt-hours').value) || 0 }
+      : {
+          material: document.getElementById('nt-material').value,
+          quantity: Number(document.getElementById('nt-qty').value) || 0,
+          unit:     document.getElementById('nt-unit').value,
+        }),
+  };
+  try {
+    await api('POST', '/api/deliverynote', body);
+    toast('Albarán creado');
+    e.target.reset();
+    toggleNoteFormat('hours');
+    document.getElementById('nt-date').value = new Date().toISOString().slice(0, 10);
+    loadNotes();
+  } catch (err) {
+    toast(err.data?.message || 'Error al crear albarán', 'error');
+  }
+}
+
+function openSign(noteId) {
+  state.signNoteId = noteId;
+  document.getElementById('sign-file').value = '';
+  new bootstrap.Modal(document.getElementById('modal-sign')).show();
+}
+
+async function submitSign() {
+  const file = document.getElementById('sign-file').files[0];
+  if (!file) { toast('Selecciona una imagen', 'error'); return; }
+  const fd = new FormData();
+  fd.append('signature', file);
+  try {
+    await api('PATCH', `/api/deliverynote/${state.signNoteId}/sign`, fd, true);
+    bootstrap.Modal.getInstance(document.getElementById('modal-sign')).hide();
+    toast('Albarán firmado correctamente');
+    loadNotes();
+  } catch (err) {
+    toast(err.data?.message || 'Error al firmar', 'error');
+  }
+}
+
+async function deleteNote(id) {
+  if (!confirm('¿Eliminar albarán?')) return;
+  try {
+    await api('DELETE', `/api/deliverynote/${id}`);
+    toast('Albarán eliminado');
+    loadNotes();
+  } catch (err) {
+    toast(err.data?.message || 'Error al eliminar', 'error');
+  }
+}
+
+// ── Arranque ──────────────────────────────────────────────────────────────────
+if (state.token) {
+  initApp();
+}
+</script>
+</body>
+</html>
