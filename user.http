@@ -1,0 +1,120 @@
+### ==========================================================================
+### BildyApp API — Ficheros .http de ejemplo
+### Usable con: VS Code REST Client, IntelliJ HTTP Client, etc.
+### ==========================================================================
+
+@baseUrl = http://localhost:3000
+@token = Bearer TU_ACCESS_TOKEN_AQUI
+@refreshToken = TU_REFRESH_TOKEN_AQUI
+
+### ─── Health ──────────────────────────────────────────────────────────────────
+GET {{baseUrl}}/health
+
+### ==========================================================================
+### USER — Registro, Login, Onboarding
+### ==========================================================================
+
+### Registro de usuario
+POST {{baseUrl}}/api/user/register
+Content-Type: application/json
+
+{
+  "email": "usuario@ejemplo.com",
+  "password": "Segura123!"
+}
+
+###
+
+### Login
+POST {{baseUrl}}/api/user/login
+Content-Type: application/json
+
+{
+  "email": "usuario@ejemplo.com",
+  "password": "Segura123!"
+}
+
+###
+
+### Verificar email (requiere token)
+PUT {{baseUrl}}/api/user/validation
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "code": "123456"
+}
+
+###
+
+### Completar datos personales (onboarding)
+PUT {{baseUrl}}/api/user/register
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "name": "Hugo",
+  "lastName": "Olza",
+  "nif": "12345678A",
+  "address": {
+    "street": "Calle Mayor",
+    "number": "10",
+    "postal": "28001",
+    "city": "Madrid",
+    "province": "Madrid"
+  }
+}
+
+###
+
+### Crear/actualizar compañía
+PATCH {{baseUrl}}/api/user/company
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "isFreelance": false,
+  "name": "Mi Empresa SL",
+  "cif": "B12345678",
+  "address": {
+    "street": "Calle Empresa",
+    "number": "5",
+    "postal": "28002",
+    "city": "Madrid",
+    "province": "Madrid"
+  }
+}
+
+###
+
+### Obtener perfil del usuario autenticado
+GET {{baseUrl}}/api/user
+Authorization: {{token}}
+
+###
+
+### Refresh token
+POST {{baseUrl}}/api/user/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+###
+
+### Logout
+POST {{baseUrl}}/api/user/logout
+Authorization: {{token}}
+
+###
+
+### Eliminar cuenta (soft delete)
+DELETE {{baseUrl}}/api/user?soft=true
+Authorization: {{token}}
+
+###
+
+### Eliminar cuenta (hard delete)
+DELETE {{baseUrl}}/api/user
+Authorization: {{token}}
