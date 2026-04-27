@@ -33,7 +33,7 @@ export const verifyJwt = async (req, res, next) => {
 
   req.user = {
     id:        user._id.toString(),
-    companyId: user.company ?? null,
+    companyId: user.company?.toString() ?? null,
     role:      user.role,
   };
 
