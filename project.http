@@ -1,0 +1,86 @@
+### ==========================================================================
+### BildyApp API — Project Endpoints
+### ==========================================================================
+
+@baseUrl = http://localhost:3000
+@token = Bearer TU_ACCESS_TOKEN_AQUI
+
+### ─── Crear un proyecto ──────────────────────────────────────────────────────
+POST {{baseUrl}}/api/project
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "client": "SUSTITUIR_POR_CLIENT_ID",
+  "name": "Reforma oficinas 3ª planta",
+  "projectCode": "PRJ-2026-001",
+  "address": {
+    "street": "Calle Industria",
+    "number": "42",
+    "postal": "08025",
+    "city": "Barcelona",
+    "province": "Barcelona"
+  },
+  "email": "proyecto@obra.com",
+  "notes": "Incluye demolición y montaje de tabiquería"
+}
+
+###
+
+### Listar proyectos (paginado + filtros)
+GET {{baseUrl}}/api/project?page=1&limit=10&sort=-createdAt
+Authorization: {{token}}
+
+###
+
+### Filtrar por cliente
+GET {{baseUrl}}/api/project?client=SUSTITUIR_POR_CLIENT_ID
+Authorization: {{token}}
+
+###
+
+### Filtrar por nombre y estado activo
+GET {{baseUrl}}/api/project?name=Reforma&active=true
+Authorization: {{token}}
+
+###
+
+### Obtener un proyecto por ID
+GET {{baseUrl}}/api/project/SUSTITUIR_POR_ID
+Authorization: {{token}}
+
+###
+
+### Actualizar un proyecto
+PUT {{baseUrl}}/api/project/SUSTITUIR_POR_ID
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "name": "Reforma oficinas ACTUALIZADA",
+  "active": false
+}
+
+###
+
+### Archivar un proyecto (soft delete)
+DELETE {{baseUrl}}/api/project/SUSTITUIR_POR_ID?soft=true
+Authorization: {{token}}
+
+###
+
+### Eliminar un proyecto (hard delete)
+DELETE {{baseUrl}}/api/project/SUSTITUIR_POR_ID
+Authorization: {{token}}
+
+###
+
+### Listar proyectos archivados
+GET {{baseUrl}}/api/project/archived
+Authorization: {{token}}
+
+###
+
+### Restaurar un proyecto archivado
+PATCH {{baseUrl}}/api/project/SUSTITUIR_POR_ID/restore
+Authorization: {{token}}
