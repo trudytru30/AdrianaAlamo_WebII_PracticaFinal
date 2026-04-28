@@ -1,0 +1,103 @@
+### ==========================================================================
+### BildyApp API — DeliveryNote (Albarán) Endpoints
+### ==========================================================================
+
+@baseUrl = http://localhost:3000
+@token = Bearer TU_ACCESS_TOKEN_AQUI
+
+### ─── Crear un albarán de horas ──────────────────────────────────────────────
+POST {{baseUrl}}/api/deliverynote
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "project": "SUSTITUIR_POR_PROJECT_ID",
+  "client": "SUSTITUIR_POR_CLIENT_ID",
+  "format": "hours",
+  "description": "Jornada de electricidad — cableado planta 3",
+  "workDate": "2026-04-20T08:00:00.000Z",
+  "hours": 16,
+  "workers": [
+    { "name": "Juan García", "hours": 8 },
+    { "name": "Pedro López", "hours": 8 }
+  ]
+}
+
+###
+
+### Crear un albarán de materiales
+POST {{baseUrl}}/api/deliverynote
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "project": "SUSTITUIR_POR_PROJECT_ID",
+  "client": "SUSTITUIR_POR_CLIENT_ID",
+  "format": "material",
+  "description": "Suministro de cemento y ladrillos",
+  "workDate": "2026-04-21T09:00:00.000Z",
+  "material": "Cemento Portland",
+  "quantity": 50,
+  "unit": "sacos"
+}
+
+###
+
+### Listar albaranes (paginado + filtros)
+GET {{baseUrl}}/api/deliverynote?page=1&limit=10&sort=-workDate
+Authorization: {{token}}
+
+###
+
+### Filtrar por proyecto
+GET {{baseUrl}}/api/deliverynote?project=SUSTITUIR_POR_PROJECT_ID
+Authorization: {{token}}
+
+###
+
+### Filtrar por formato y estado de firma
+GET {{baseUrl}}/api/deliverynote?format=hours&signed=false
+Authorization: {{token}}
+
+###
+
+### Filtrar por rango de fechas
+GET {{baseUrl}}/api/deliverynote?from=2026-04-01&to=2026-04-30
+Authorization: {{token}}
+
+###
+
+### Obtener un albarán por ID (con populate)
+GET {{baseUrl}}/api/deliverynote/SUSTITUIR_POR_ID
+Authorization: {{token}}
+
+###
+
+### Descargar PDF del albarán
+GET {{baseUrl}}/api/deliverynote/pdf/SUSTITUIR_POR_ID
+Authorization: {{token}}
+
+###
+
+### Firmar un albarán (subir imagen de firma)
+# NOTA: Para probar con VS Code REST Client,
+# sustituir la ruta del archivo por una imagen real.
+# Con curl: curl -X PATCH http://localhost:3000/api/deliverynote/ID/sign \
+#   -H "Authorization: Bearer TOKEN" \
+#   -F "signature=@/ruta/a/firma.png"
+PATCH {{baseUrl}}/api/deliverynote/SUSTITUIR_POR_ID/sign
+Authorization: {{token}}
+Content-Type: multipart/form-data; boundary=----Boundary
+
+------Boundary
+Content-Disposition: form-data; name="signature"; filename="firma.png"
+Content-Type: image/png
+
+< ./uploads/ejemplo-firma.png
+------Boundary--
+
+###
+
+### Eliminar un albarán (solo si no está firmado)
+DELETE {{baseUrl}}/api/deliverynote/SUSTITUIR_POR_ID
+Authorization: {{token}}
