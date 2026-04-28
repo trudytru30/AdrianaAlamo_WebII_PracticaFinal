@@ -38,9 +38,9 @@ export const uploadImage = async (buffer, folder, publicId) => {
     );
   }
 
-  // Optimización con Sharp: reducir a 80px (ajustar si hace falta)
+  // Optimización con Sharp: convertir a webp, reducir calidad
   const optimized = await sharp(buffer)
-    .resize({ width: 80, withoutEnlargement: true })
+    .resize({ width: 800, withoutEnlargement: true })
     .webp({ quality: 80 })
     .toBuffer();
 
