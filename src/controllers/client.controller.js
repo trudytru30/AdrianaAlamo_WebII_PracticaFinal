@@ -56,7 +56,7 @@ export const list = asyncHandler(async (req, res) => {
   const filter = { company: req.user.companyId };
   if (name) filter.name = { $regex: name, $options: 'i' };
 
-  const skip = page * limit;
+  const skip = (page - 1) * limit;
 
   const [clients, totalItems] = await Promise.all([
     Client.find(filter).sort(sort).skip(skip).limit(limit),
