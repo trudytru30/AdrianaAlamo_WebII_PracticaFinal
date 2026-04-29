@@ -20,7 +20,7 @@ export class AppError extends Error {
   }
   static validation(issues) {
     const msg = Array.isArray(issues)
-      ? issues.map((i) => `${i.path.join('/')}: ${i.message}`).join('; ')
+      ? issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ')
       : String(issues);
     return new AppError(msg, 400);
   }
