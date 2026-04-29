@@ -1,0 +1,13 @@
+node_modules
+.env
+.env.*
+uploads/
+*.log
+.git
+.gitignore
+tests/
+jest.config.js
+*.md
+.vscode
+.claude
+Enunciado
