@@ -31,3 +31,15 @@ export const createDeliveryNoteSchema = z.discriminatedUnion('format', [
   materialNoteSchema,
   hoursNoteSchema,
 ]);
+
+// Schema plano para actualizaciones parciales (PUT/PATCH).
+// No usa discriminatedUnion porque el cliente no está obligado a enviar 'format'.
+export const updateDeliveryNoteSchema = z.object({
+  description: z.string().trim().optional(),
+  workDate:    z.coerce.date().optional(),
+  material:    z.string().trim().optional(),
+  quantity:    z.number().min(0).optional(),
+  unit:        z.string().trim().optional(),
+  hours:       z.number().min(0).optional(),
+  workers:     z.array(workerSchema).optional(),
+});

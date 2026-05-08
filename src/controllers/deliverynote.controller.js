@@ -9,6 +9,7 @@ import {
   emitNewDeliveryNote,
   emitDeliveryNoteSigned,
 } from '../services/realtime.service.js';
+import { updateDeliveryNoteSchema } from '../validators/deliverynote.validator.js';
 
 // POST /api/deliverynote
 export const create = asyncHandler(async (req, res) => {
@@ -108,6 +109,26 @@ export const remove = asyncHandler(async (req, res) => {
   res.json({ message: 'Albarán eliminado correctamente' });
 });
 
+// PUT /api/deliverynote/:id  y  PATCH /api/deliverynote/:id
+// Guardia 409 si firmado; si no, valida con Zod y aplica actualización parcial.
+export const update = asyncHandler(async (req, res) => {
+  const note = await DeliveryNote.findOne({
+    _id:     req.params.id,
+    company: req.user.companyId,
+  });
+
+  if (!note) throw AppError.notFound('Albarán no encontrado');
+  if (note.signed) throw AppError.conflict('No se puede modificar un albarán firmado');
+
+  const parsed = updateDeliveryNoteSchema.safeParse(req.body);
+  if (!parsed.success) throw AppError.validation(parsed.error.issues);
+
+  Object.assign(note, parsed.data);
+  await note.save();
+
+  res.json({ deliveryNote: note });
+});
+
 // PATCH /api/deliverynote/:id/sign
 // Recibe la imagen de firma como multipart/form-data (campo: signature)
 export const sign = asyncHandler(async (req, res) => {
@@ -156,6 +177,11 @@ export const downloadPdf = asyncHandler(async (req, res) => {
     .populate('project', 'name projectCode address email');
 
   if (!note) throw AppError.notFound('Albarán no encontrado');
+
+  // Un guest solo puede descargar si fue el creador del albarán
+  if (req.user.role === 'guest' && note.user.toString() !== req.user.id) {
+    throw AppError.forbidden('No tienes permiso para descargar este albarán');
+  }
 
   // Si ya hay PDF firmado guardado en Cloudinary, redirigir
   if (note.pdfUrl) {

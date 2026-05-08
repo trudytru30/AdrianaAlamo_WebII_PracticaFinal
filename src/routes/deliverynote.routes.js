@@ -4,12 +4,13 @@ import {
   list,
   getById,
   remove,
+  update,
   sign,
   downloadPdf,
 } from '../controllers/deliverynote.controller.js';
 import { verifyJwt } from '../middleware/auth.middleware.js';
 import { validate } from '../middleware/validate.js';
-import { createDeliveryNoteSchema } from '../validators/deliverynote.validator.js';
+import { createDeliveryNoteSchema, updateDeliveryNoteSchema } from '../validators/deliverynote.validator.js';
 import { deliverynoteListSchema } from '../validators/pagination.validator.js';
 import { upload, handleMulterError } from '../middleware/upload.js';
 
@@ -127,6 +128,8 @@ router.get('/',      validate(deliverynoteListSchema, 'query'), list);
 router.get('/pdf/:id',    downloadPdf);
 router.get('/:id',        getById);
 router.delete('/:id',     remove);
+router.put('/:id',        validate(updateDeliveryNoteSchema), update);
+router.patch('/:id',      validate(updateDeliveryNoteSchema), update);
 
 router.patch('/:id/sign', upload.single('signature'), handleMulterError, sign);
 

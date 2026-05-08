@@ -9,6 +9,7 @@ import {
   fakeId,
 } from './helpers/factories.js';
 import { authHeader } from './helpers/auth.js';
+import User from '../src/models/User.js';
 
 /**
  * Con ESM, los import estáticos se ejecutan ANTES que cualquier código del
@@ -212,6 +213,35 @@ describe('PATCH /api/deliverynote/:id/sign', () => {
   });
 });
 
+// ── PUT /api/deliverynote/:id ─────────────────────────────────────────────────
+describe('PUT /api/deliverynote/:id', () => {
+  it('rechaza modificar un albarán firmado (409)', async () => {
+    const note = await createDeliveryNote(company._id, user._id, client._id, project._id, {
+      signed: true,
+    });
+
+    const res = await request(app)
+      .put(`/api/deliverynote/${note._id}`)
+      .set('Authorization', token)
+      .send({ description: 'Intento de modificación' });
+
+    expect(res.status).toBe(409);
+    expect(res.body.message).toMatch(/firmado/i);
+  });
+
+  it('actualiza un albarán no firmado (200)', async () => {
+    const note = await createDeliveryNote(company._id, user._id, client._id, project._id);
+
+    const res = await request(app)
+      .put(`/api/deliverynote/${note._id}`)
+      .set('Authorization', token)
+      .send({ description: 'Descripción actualizada', hours: 10 });
+
+    expect(res.status).toBe(200);
+    expect(res.body.deliveryNote.description).toBe('Descripción actualizada');
+  });
+});
+
 // ── GET /api/deliverynote/pdf/:id ─────────────────────────────────────────────
 describe('GET /api/deliverynote/pdf/:id', () => {
   it('genera PDF al vuelo para albarán sin firma', async () => {
@@ -224,6 +254,21 @@ describe('GET /api/deliverynote/pdf/:id', () => {
     // Sin firma → genera PDF en memoria y lo envía
     expect(res.status).toBe(200);
     expect(res.headers['content-type']).toMatch(/pdf/);
+  });
+
+  it('rechaza descarga de PDF a guest que no es creador (403)', async () => {
+    // La nota la crea `user` (admin); el guest pertenece a la misma compañía pero no es el creador
+    const note = await createDeliveryNote(company._id, user._id, client._id, project._id);
+
+    const { user: guest } = await createUserWithCompany({ role: 'guest' });
+    await User.findByIdAndUpdate(guest._id, { company: company._id });
+    const guestToken = authHeader(guest._id);
+
+    const res = await request(app)
+      .get(`/api/deliverynote/pdf/${note._id}`)
+      .set('Authorization', guestToken);
+
+    expect(res.status).toBe(403);
   });
 
   it('redirige al pdfUrl si el albarán ya está firmado (302)', async () => {
